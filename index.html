@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Lab 5 comparison of mean NBA Draft Combine wingspan-to-height ratios for power forwards and centers.">
+  <title>NBA Combine Length Benchmarks | Lab 5</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17263b;
+      --muted: #586779;
+      --line: #e3ded4;
+      --paper: #fffdf8;
+      --ground: #f3f0e9;
+      --navy: #10233b;
+      --navy-soft: #1c3553;
+      --orange: #d97732;
+      --pf: #d97732;
+      --center: #395f89;
+      --accent: #f8f1e7;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font: 16px/1.6 Inter, "Segoe UI", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    main { max-width: 1180px; margin: 0 auto; padding: 48px 30px 60px; }
+    header {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 22px;
+      padding: 38px 42px 35px;
+      border-radius: 18px;
+      background: var(--navy);
+      box-shadow: 0 16px 38px #10233b1f;
+    }
+    header::after {
+      position: absolute;
+      right: -52px;
+      bottom: -93px;
+      width: 250px;
+      height: 250px;
+      border: 1px solid #ffffff20;
+      border-radius: 50%;
+      box-shadow: 0 0 0 26px #ffffff0a, 0 0 0 52px #ffffff08;
+      content: "";
+      pointer-events: none;
+    }
+    .eyebrow { margin: 0 0 12px; color: #f0a56e; font-size: .76rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { position: relative; z-index: 1; max-width: 850px; margin: 0; color: var(--paper); font-size: clamp(2.15rem, 5vw, 3.6rem); font-weight: 760; line-height: 1.05; letter-spacing: -.04em; }
+    .dek { position: relative; z-index: 1; max-width: 760px; margin: 17px 0 0; color: #d5dfeb; font-size: 1.06rem; }
+    .answer {
+      margin: 0 0 30px;
+      padding: 19px 23px;
+      border: 1px solid #ead9c7;
+      border-left: 5px solid var(--orange);
+      border-radius: 8px 13px 13px 8px;
+      background: var(--paper);
+      box-shadow: 0 5px 18px #10233b0a;
+      font-size: 1.08rem;
+    }
+    .answer strong { color: var(--navy); }
+    .charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    figure { min-width: 0; margin: 0; padding: 23px 21px 18px; border: 1px solid var(--line); border-radius: 15px; background: var(--paper); box-shadow: 0 9px 26px #10233b0b; }
+    figcaption { min-height: 66px; margin-bottom: 7px; }
+    h2 { margin: 0; color: var(--navy); font-size: 1.18rem; font-weight: 750; line-height: 1.32; letter-spacing: -.015em; }
+    .chart-subtitle { margin: 6px 0 0; color: var(--muted); font-size: .86rem; }
+    svg { display: block; width: 100%; height: auto; overflow: visible; }
+    .gridline { stroke: #e8e4dd; stroke-width: 1; }
+    .axis { stroke: #748091; stroke-width: 1.3; }
+    .tick { fill: #596a7b; font-family: inherit; font-size: 12px; }
+    .axis-label { fill: var(--navy); font-family: inherit; font-size: 12px; font-weight: 700; }
+    .bar-pf { fill: var(--pf); }
+    .bar-center { fill: var(--center); }
+    .bar-label { fill: var(--navy); font-family: inherit; font-size: 12px; font-weight: 800; }
+    .group-label { fill: #3f5062; font-family: inherit; font-size: 12px; font-weight: 700; }
+    .legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 5px 0 0 48px; color: var(--muted); font-size: .86rem; }
+    .legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .swatch { width: 11px; height: 11px; border-radius: 3px; box-shadow: 0 0 0 2px #10233b0a; }
+    .period-results { margin-top: 24px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+    .result { padding: 23px 24px; border: 1px solid var(--line); border-top: 4px solid var(--orange); border-radius: 12px; background: var(--paper); box-shadow: 0 7px 22px #10233b09; }
+    .result h2 { margin-bottom: 11px; font-size: 1.22rem; }
+    .result p { margin: 10px 0 0; color: #37485a; }
+    .result strong { color: var(--navy); font-weight: 800; }
+    .evidence-note { margin: 22px 0 0; padding: 15px 18px; border: 1px solid #d9dfe4; border-radius: 10px; background: #e9edf0; color: #435367; font-size: .91rem; }
+    .recommendation { margin-top: 24px; padding: 22px 25px; border-radius: 13px; background: var(--navy); color: #e8edf3; }
+    .recommendation h2 { margin-bottom: 7px; color: #f0a56e; }
+    .recommendation p { margin: 0; }
+    .limitation { margin: 20px 0 0; padding-left: 14px; border-left: 3px solid var(--orange); color: #526174; font-size: .94rem; }
+    @media (max-width: 760px) {
+      main { padding: 26px 16px 38px; }
+      header { padding: 29px 25px 27px; border-radius: 14px; }
+      .charts, .period-results { grid-template-columns: 1fr; }
+      figure { padding: 20px 17px 16px; }
+      figcaption { min-height: auto; }
+    }
+    @media (max-width: 420px) {
+      main { padding-right: 12px; padding-left: 12px; }
+      header { padding: 25px 20px 23px; }
+      .legend { margin-left: 34px; gap: 12px; }
+      .result { padding: 20px; }
+    }
+    @media print {
+      body { background: white; }
+      main { max-width: none; padding: 10mm; }
+      header, .recommendation { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      figure, .result, .answer, .evidence-note { break-inside: avoid; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">NBA Draft Combine · Lab 5</p>
+      <h1>Power forwards led in the full period; centers led in the recent period</h1>
+      <p class="dek">Power forwards averaged 0.15 percentage points higher in 2000–2026; centers averaged 0.10 percentage points higher in 2015–2026.</p>
+    </header>
+
+    <section class="charts" aria-label="Mean wingspan-to-height ratios by group">
+      <figure>
+        <figcaption>
+          <h2>2000–2026: Power forwards had a mean 0.15 percentage points higher</h2>
+          <p class="chart-subtitle">Mean wingspan-to-height ratio, percent; vertical axis starts at zero</p>
+        </figcaption>
+        <svg viewBox="0 0 440 330" role="img" aria-labelledby="chart1-title chart1-desc">
+          <title id="chart1-title">2000–2026: Power forwards had a mean 0.15 percentage points higher</title>
+          <desc id="chart1-desc">Power forwards averaged 106.35 percent and centers averaged 106.20 percent. The vertical axis starts at zero and ends at 120 percent.</desc>
+          <text class="axis-label" x="68" y="18">Mean ratio (%)</text>
+          <line class="gridline" x1="68" y1="36" x2="414" y2="36"/><text class="tick" x="58" y="40" text-anchor="end">120</text>
+          <line class="gridline" x1="68" y1="94.5" x2="414" y2="94.5"/><text class="tick" x="58" y="98.5" text-anchor="end">90</text>
+          <line class="gridline" x1="68" y1="153" x2="414" y2="153"/><text class="tick" x="58" y="157" text-anchor="end">60</text>
+          <line class="gridline" x1="68" y1="211.5" x2="414" y2="211.5"/><text class="tick" x="58" y="215.5" text-anchor="end">30</text>
+          <line class="gridline" x1="68" y1="270" x2="414" y2="270"/><text class="tick" x="58" y="274" text-anchor="end">0</text>
+          <line class="axis" x1="68" y1="36" x2="68" y2="270"/><line class="axis" x1="68" y1="270" x2="414" y2="270"/>
+          <rect class="bar-pf" x="143" y="62.610" width="72" height="207.390" rx="5"/>
+          <rect class="bar-center" x="273" y="62.907" width="72" height="207.093" rx="5"/>
+          <text class="bar-label" x="179" y="53" text-anchor="middle">106.35%</text>
+          <text class="bar-label" x="309" y="54" text-anchor="middle">106.20%</text>
+          <text class="group-label" x="179" y="293" text-anchor="middle">Power forwards</text>
+          <text class="group-label" x="309" y="293" text-anchor="middle">Centers</text>
+        </svg>
+        <div class="legend" aria-hidden="true">
+          <span><i class="swatch" style="background:var(--pf)"></i>Power forwards</span>
+          <span><i class="swatch" style="background:var(--center)"></i>Centers</span>
+        </div>
+      </figure>
+
+      <figure>
+        <figcaption>
+          <h2>2015–2026: Centers had a mean 0.10 percentage points higher</h2>
+          <p class="chart-subtitle">Mean wingspan-to-height ratio, percent; vertical axis starts at zero</p>
+        </figcaption>
+        <svg viewBox="0 0 440 330" role="img" aria-labelledby="chart2-title chart2-desc">
+          <title id="chart2-title">2015–2026: Centers had a mean 0.10 percentage points higher</title>
+          <desc id="chart2-desc">Power forwards averaged 106.30 percent and centers averaged 106.40 percent. The vertical axis starts at zero and ends at 120 percent.</desc>
+          <text class="axis-label" x="68" y="18">Mean ratio (%)</text>
+          <line class="gridline" x1="68" y1="36" x2="414" y2="36"/><text class="tick" x="58" y="40" text-anchor="end">120</text>
+          <line class="gridline" x1="68" y1="94.5" x2="414" y2="94.5"/><text class="tick" x="58" y="98.5" text-anchor="end">90</text>
+          <line class="gridline" x1="68" y1="153" x2="414" y2="153"/><text class="tick" x="58" y="157" text-anchor="end">60</text>
+          <line class="gridline" x1="68" y1="211.5" x2="414" y2="211.5"/><text class="tick" x="58" y="215.5" text-anchor="end">30</text>
+          <line class="gridline" x1="68" y1="270" x2="414" y2="270"/><text class="tick" x="58" y="274" text-anchor="end">0</text>
+          <line class="axis" x1="68" y1="36" x2="68" y2="270"/><line class="axis" x1="68" y1="270" x2="414" y2="270"/>
+          <rect class="bar-pf" x="143" y="62.713" width="72" height="207.287" rx="5"/>
+          <rect class="bar-center" x="273" y="62.527" width="72" height="207.473" rx="5"/>
+          <text class="bar-label" x="179" y="54" text-anchor="middle">106.30%</text>
+          <text class="bar-label" x="309" y="45" text-anchor="middle">106.40%</text>
+          <text class="group-label" x="179" y="293" text-anchor="middle">Power forwards</text>
+          <text class="group-label" x="309" y="293" text-anchor="middle">Centers</text>
+        </svg>
+        <div class="legend" aria-hidden="true">
+          <span><i class="swatch" style="background:var(--pf)"></i>Power forwards</span>
+          <span><i class="swatch" style="background:var(--center)"></i>Centers</span>
+        </div>
+      </figure>
+    </section>
+
+    <section class="period-results" aria-label="Results by period">
+      <article class="result">
+        <h2>2000–2026</h2>
+        <p>Power forwards (n = 440) averaged <strong>106.35%</strong>; centers (n = 217) averaged <strong>106.20%</strong>. The mean difference was <strong>0.15 percentage points</strong>, with power forwards higher.</p>
+        <p>The reported supplemental two-group Welch test did not find clear evidence of a group difference beyond chance (p = .526); this result was not independently verified. Reported Hedges’ g was <strong>0.05</strong>, favoring power forwards and close to zero; it was not independently verified.</p>
+      </article>
+      <article class="result">
+        <h2>2015–2026</h2>
+        <p>Power forwards (n = 159) averaged <strong>106.30%</strong>; centers (n = 95) averaged <strong>106.40%</strong>. The mean difference was <strong>−0.10 percentage points</strong>, with centers higher.</p>
+        <p>The reported supplemental two-group Welch test did not find clear evidence of a group difference beyond chance (p = .784); this result was not independently verified. Reported Hedges’ g was <strong>−0.04</strong>, favoring centers and close to zero; it was not independently verified.</p>
+      </article>
+    </section>
+
+    <p class="evidence-note">The counts and means are reported from Lab5_Checks. The p-values and Hedges’ g are reported supplemental test results; neither the underlying workbook calculations nor these test results were independently verified.</p>
+
+    <section class="recommendation" aria-labelledby="recommendation-title">
+      <h2 id="recommendation-title">Scouting takeaway</h2>
+      <p>The observed mean gaps are small and reverse direction in the recent period. These results alone do not support setting different positional length benchmarks or changing prospect evaluations; no practical decision threshold was provided to judge whether effects of this size matter.</p>
+    </section>
+
+    <p class="source-note">Dataset source: <a href="https://www.kaggle.com/datasets/marcusfern/nba-draft-combine">NBA Draft Combine measurements</a>, licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>.</p>
+
+    <p class="limitation">Limitation: combine position labels may not fully represent the role a player performs on an NBA team.</p>
+  </main>
+</body>
+</html>
